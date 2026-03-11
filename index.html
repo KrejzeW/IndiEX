@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Wskaźniki" />
+  <meta name="theme-color" content="#111111" />
+  <title>Wskaźniki Techniczne</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #111;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #c8ff00;
+      --red: #ff6b6b;
+      --blue: #4a9eff;
+      --green: #4aff88;
+      --text: #eee;
+      --muted: #555;
+      --font: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    body {
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ── HEADER ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #111;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 16px 12px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: 3px; }
+    .logo span { color: var(--accent); }
+    .count { font-size: 9px; color: var(--muted); letter-spacing: 2px; }
+
+    /* Search */
+    .search-wrap { position: relative; }
+    .search-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px 10px 36px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--muted); }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* ── CATEGORY TABS ── */
+    .tabs-wrap {
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
+    .tab {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 10px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* ── LIST ── */
+    .list-wrap {
+      height: calc(100vh - 160px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 16px 32px;
+    }
+
+    .section-title {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      padding: 16px 0 8px;
+      text-transform: uppercase;
+    }
+
+    .indicator-btn {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .indicator-btn:active { transform: scale(0.98); }
+    .indicator-btn:hover { border-color: #3a3a3a; }
+
+    .ind-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .ind-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .ind-info { min-width: 0; }
+    .ind-name {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ind-short { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; }
+    .ind-tag {
+      flex-shrink: 0;
+      font-size: 8px;
+      letter-spacing: 1px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid;
+      font-weight: 700;
+    }
+    .arrow { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      width: 100%;
+      max-height: 85vh;
+      background: #181818;
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: #333;
+      border-radius: 2px;
+      margin: 12px auto 0;
+      flex-shrink: 0;
+    }
+    .modal-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-tag-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .modal-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .modal-name {
+      font-size: 20px; font-weight: 700; color: #fff;
+    }
+    .modal-short {
+      font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-top: 2px;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+    }
+    .modal-desc {
+      font-size: 13px;
+      line-height: 1.9;
+      color: #ccc;
+    }
+    .modal-desc p { margin-bottom: 14px; }
+    .modal-desc p:last-child { margin-bottom: 0; }
+
+    .modal-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .modal-section-title {
+      font-size: 9px; letter-spacing: 3px; color: var(--muted);
+      margin-bottom: 12px; text-transform: uppercase;
+    }
+    .signal-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .signal-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+    }
+    .signal-text { font-size: 12px; color: #aaa; line-height: 1.6; }
+    .signal-text b { color: #fff; }
+
+    .tip-box {
+      background: #1e2a00;
+      border: 1px solid #2a3a00;
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 16px;
+    }
+    .tip-label { font-size: 9px; color: #8aaa00; letter-spacing: 2px; margin-bottom: 8px; }
+    .tip-text { font-size: 12px; color: #aaa; line-height: 1.7; }
+
+    .close-btn {
+      margin: 16px 20px;
+      width: calc(100% - 40px);
+      padding: 14px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">IND<span>EX</span></div>
+    <div class="count" id="countLabel">35 WSKAŹNIKÓW</div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" placeholder="Szukaj wskaźnika..." id="searchInput" oninput="filterIndicators()" />
+  </div>
+</div>
+
+<div class="tabs-wrap" id="tabs">
+  <button class="tab active" onclick="filterCategory('all', this)">WSZYSTKIE</button>
+  <button class="tab" onclick="filterCategory('trend', this)">TREND</button>
+  <button class="tab" onclick="filterCategory('momentum', this)">MOMENTUM</button>
+  <button class="tab" onclick="filterCategory('volatility', this)">ZMIENNOŚĆ</button>
+  <button class="tab" onclick="filterCategory('volume', this)">WOLUMEN</button>
+</div>
+
+<div class="list-wrap" id="listWrap"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-tag-row">
+        <div class="modal-icon" id="mIcon"></div>
+        <div>
+          <div class="modal-name" id="mName"></div>
+          <div class="modal-short" id="mShort"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <button class="close-btn" onclick="closeModalBtn()">ZAMKNIJ</button>
+  </div>
+</div>
+
+<script>
+const indicators = [
+  {
+    id: 'aroon',
+    name: 'Aroon',
+    short: 'TREND · KIERUNEK',
+    icon: '🔄',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Składa się z dwóch linii w skali 0–100. <b>Aroon Up</b> liczy ile świeczek minęło od ostatniego szczytu, <b>Aroon Down</b> ile minęło od ostatniego dołka.',
+      'Kiedy Aroon Up przecina Aroon Down od dołu — potencjalny początek trendu wzrostowego. Kiedy obie linie są blisko 50 — rynek bez kierunku, chodzi w bok.',
+      'Najsilniejszy sygnał gdy jedna linia jest blisko 100 a druga blisko 0 — wtedy mamy czysty, silny trend. Słabość tego wskaźnika to że działa z opóźnieniem i na bardzo zmiennych rynkach daje fałszywe sygnały.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Aroon Up blisko 100, Down blisko 0</b> — silny trend wzrostowy' },
+      { color: '#ff6b6b', text: '<b>Aroon Down blisko 100, Up blisko 0</b> — silny trend spadkowy' },
+      { color: '#c8ff00', text: '<b>Obie linie blisko 50</b> — brak trendu, rynek chodzi w bok' },
+    ],
+    tip: 'Najlepiej używać jako filtr — wejdź w pozycję tylko gdy jedna linia jest znacznie powyżej drugiej, co potwierdza istnienie trendu.'
+  },
+  {
+    id: 'atr',
+    name: 'Average True Range',
+    short: 'ATR · ZMIENNOŚĆ',
+    icon: '📊',
+    iconBg: '#1a1a2a',
+    iconColor: '#c8ff00',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Mierzy <b>zmienność rynku</b> jako średni zasięg ruchu świeczki z ostatnich N okresów (domyślnie 14). Im wyższy ATR tym bardziej "nerwowy" rynek.',
+      'Obliczany jako największa z trzech wartości: High−Low bieżącej świeczki, |High − poprzednie Close| lub |Low − poprzednie Close|. Dzięki temu uwzględnia luki cenowe.',
+      'Używany w metodzie Hougaarda do wyznaczania stop-lossa (2×ATR) i rozmiaru pozycji. Wysoki ATR = szerokie stopy, mała pozycja. Niski ATR = wąskie stopy, duża pozycja.'
+    ],
+    signals: [
+      { color: '#c8ff00', text: '<b>ATR rośnie</b> — zmienność wzrasta, rynek "budzi się"' },
+      { color: '#4a9eff', text: '<b>ATR spada</b> — rynek się uspokaja, może zbliżać się duży ruch' },
+      { color: '#ff6b6b', text: '<b>Bardzo wysoki ATR</b> — rynek ekstremalnie zmienny, ostrożnie z rozmiarem pozycji' },
+    ],
+    tip: 'W kalkulatorze ATRCalc używasz tego wskaźnika bezpośrednio. Odczytaj wartość ATR(14) z wykresu i wpisz ją jako Wartość N.'
+  },
+  {
+    id: 'ao',
+    name: 'Awesome Oscillator',
+    short: 'AO · MOMENTUM',
+    icon: '⚡',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Stworzony przez Billa Williamsa. Oblicza różnicę między <b>średnią 5-okresową</b> a <b>34-okresową</b> z punktów środkowych świeczek (nie cen zamknięcia).',
+      'Histogram zmienia kolor — <b>zielony</b> gdy słupek jest wyższy od poprzedniego (momentum rośnie), <b>czerwony</b> gdy niższy (momentum spada).',
+      'Trzy główne sygnały: "Zero Line Cross" gdy histogram przechodzi przez zero, "Twin Peaks" czyli dwa dołki lub szczyty po tej samej stronie, i "Saucer" czyli trzy kolejne słupki z których środkowy jest najniższy lub najwyższy.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Histogram przechodzi przez zero od dołu</b> — sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>Histogram przechodzi przez zero od góry</b> — sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Dwa kolejne dołki powyżej zera (Twin Peaks)</b> — sygnał kupna' },
+    ],
+    tip: 'Najlepiej działa w połączeniu z innymi wskaźnikami Billa Williamsa. Samo AO może dawać fałszywe sygnały na rynkach bez trendu.'
+  },
+  {
+    id: 'bolb',
+    name: 'Bollinger %B',
+    short: 'BOLLINGER · POZYCJA',
+    icon: '📍',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Pochodna Wstęg Bollingera. Zamiast pokazywać wstęgi na wykresie, mówi Ci <b>gdzie dokładnie cena jest względem wstęg</b> jako konkretna liczba.',
+      'Wartość <b>1.0</b> = cena przy górnej wstędze. Wartość <b>0</b> = cena przy dolnej wstędze. Wartość <b>0.5</b> = cena przy środkowej linii. Wartości powyżej 1 lub poniżej 0 = cena wyszła poza wstęgi.',
+      'Przydatny gdy chcesz ustawić alerty — np. "powiadom mnie gdy %B spadnie poniżej 0.05" zamiast patrzeć na wykres cały czas.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>%B powyżej 1.0</b> — cena wyszła powyżej górnej wstęgi, ekstremalnie wykupiona' },
+      { color: '#4aff88', text: '<b>%B poniżej 0.0</b> — cena wyszła poniżej dolnej wstęgi, ekstremalnie wyprzedana' },
+      { color: '#c8ff00', text: '<b>%B = 0.5</b> — cena dokładnie na środkowej średniej' },
+    ],
+    tip: 'Używaj razem z Bollinger Bandwidth — gdy Bandwidth jest wąski (squeeze) a %B zaczyna mocno rosnąć lub spadać, to sygnał początku nowego ruchu.'
+  },
+  {
+    id: 'bb',
+    name: 'Bollinger Bands',
+    short: 'BB · WSTĘGI',
+    icon: '〰️',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Trzy linie — <b>środkowa</b> (EMA 20), <b>górna</b> (średnia + 2 odchylenia standardowe) i <b>dolna</b> (średnia − 2 odchylenia standardowe). Statystycznie 95% cen mieści się wewnątrz wstęg.',
+      '<b>Wstęgi szerokie</b> = duża zmienność. <b>Wstęgi wąskie</b> = mała zmienność, często zapowiada duży ruch (squeeze). Cena może "chodzić po wstędze" podczas silnego trendu.',
+      'Dotknięcie górnej wstęgi nie jest automatycznym sygnałem sprzedaży — w silnym trendzie wzrostowym cena może przez długi czas utrzymywać się blisko górnej wstęgi.'
+    ],
+    signals: [
+      { color: '#c8ff00', text: '<b>Squeeze</b> — wstęgi bardzo wąskie, czekaj na wybicie' },
+      { color: '#ff6b6b', text: '<b>Cena przy górnej wstędze bez trendu</b> — potencjalny sygnał sprzedaży' },
+      { color: '#4aff88', text: '<b>Cena przy dolnej wstędze bez trendu</b> — potencjalny sygnał kupna' },
+    ],
+    tip: 'Bollinger sam powiedział że jego wstęgi to narzędzie do oceny zmienności, nie do generowania sygnałów. Zawsze łącz z innymi wskaźnikami.'
+  },
+  {
+    id: 'bw',
+    name: 'Bollinger Bandwidth',
+    short: 'BBW · SQUEEZE',
+    icon: '↔️',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Mierzy <b>szerokość wstęg Bollingera</b> jako procent środkowej linii. Im niższa wartość tym wstęgi są ciaśniejsze.',
+      'Gdy Bandwidth jest bardzo niski — rynek "zasypia", zmienność spada. Ten moment nazywa się <b>"squeeze"</b> i jest bardzo ważny bo historycznie po squeeze następuje silny ruch.',
+      'Problem w tym że wskaźnik nie mówi Ci <b>w którą stronę</b> nastąpi wybicie. Dlatego traders czekają na squeeze a potem patrzą na kierunek przebicia żeby wejść w pozycję.'
+    ],
+    signals: [
+      { color: '#c8ff00', text: '<b>Bandwidth osiąga minimum historyczne</b> — squeeze, przygotuj się na duży ruch' },
+      { color: '#4aff88', text: '<b>Bandwidth gwałtownie rośnie</b> — ruch się rozpoczął, sprawdź kierunek' },
+      { color: '#4a9eff', text: '<b>Bandwidth systematycznie spada</b> — rynek uspokaja się, squeeze w budowie' },
+    ],
+    tip: 'Połącz z SuperTrendem lub EMA żeby określić kierunek po squeeze. Bandwidth powie Ci KIEDY, inne wskaźniki powiedzą GDZIE.'
+  },
+  {
+    id: 'cv',
+    name: 'Chaikin Volatility',
+    short: 'ZMIENNOŚĆ · HIGH-LOW',
+    icon: '📈',
+    iconBg: '#1a1a2a',
+    iconColor: '#4a9eff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Mierzy zmienność przez porównanie <b>różnicy między High a Low</b> w czasie. Im większa różnica między górnymi i dolnymi punktami świeczek tym wyższe odczytanie.',
+      '<b>Rosnący wskaźnik</b> przed szczytem rynku może sygnalizować że zbliżamy się do odwrócenia — rynek staje się "nerwowy" przed zmianą. <b>Spadający wskaźnik</b> podczas trendu sugeruje że trend jest spokojny i stabilny.',
+      'Mniej popularny niż ATR ale daje podobne informacje w trochę inny sposób. Dobry do potwierdzenia obserwacji z ATR.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>Gwałtowny wzrost zmienności</b> — możliwe odwrócenie lub panika na rynku' },
+      { color: '#4aff88', text: '<b>Niska, stabilna zmienność podczas trendu</b> — trend zdrowy i kontynuowany' },
+      { color: '#c8ff00', text: '<b>Zmienność spada do minimum</b> — rynek się konsoliduje, czekaj na wybicie' },
+    ],
+    tip: 'Chaikin Volatility jest mniej popularny niż ATR ale warto go znać jako dodatkowe potwierdzenie. Na rynkach Forex i Indices działa dobrze.'
+  },
+  {
+    id: 'cci',
+    name: 'Commodity Channel Index',
+    short: 'CCI · ODCHYLENIE',
+    icon: '🎯',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Mimo nazwy "Commodity" działa na wszystkich instrumentach. Mierzy jak bardzo aktualna cena odbiega od swojej <b>statystycznej średniej</b>.',
+      'Typowe ustawienie to 20 okresów. Powyżej <b>+100</b> cena jest znacznie powyżej swojej średniej. Poniżej <b>-100</b> cena jest znacznie poniżej. Część traderów traktuje to jako sygnał odwrócenia, inni jako potwierdzenie silnego trendu.',
+      '<b>Dywergencja</b> między CCI a ceną (cena robi nowy szczyt ale CCI już nie) jest często traktowana jako mocny sygnał ostrzegawczy możliwego odwrócenia.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>CCI powyżej +100</b> — wykupiony, potencjalny sygnał sprzedaży (lub potwierdzenie trendu wzrostowego)' },
+      { color: '#4aff88', text: '<b>CCI poniżej -100</b> — wyprzedany, potencjalny sygnał kupna' },
+      { color: '#c8ff00', text: '<b>Dywergencja CCI vs cena</b> — ostrzeżenie przed odwróceniem' },
+    ],
+    tip: 'Na rynkach trendujących CCI może pozostawać powyżej +100 przez długi czas — to nie jest sygnał sprzedaży, tylko potwierdzenie silnego trendu.'
+  },
+  {
+    id: 'dpo',
+    name: 'Detrended Price Oscillator',
+    short: 'DPO · CYKLE',
+    icon: '🔁',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Usuwa długoterminowy trend z wykresu żeby pokazać <b>krótkoterminowe cykle rynkowe</b>. Przesuwa średnią kroczącą w przeszłość o połowę jej okresu.',
+      'Dzięki temu widać regularne szczyty i dołki cyklu bez wpływu trendu. Jeśli rynek regularnie robi szczyty co 20 świeczek DPO pomoże to zobaczyć.',
+      'Mało przydatny dla większości day traderów ale ciekawy dla tych którzy handlują <b>sezonowością</b> lub szukają regularnych cykli na wyższych timeframe\'ach.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>DPO osiąga regularny dołek</b> — koniec cyklu spadkowego, możliwy zwrot' },
+      { color: '#ff6b6b', text: '<b>DPO osiąga regularny szczyt</b> — koniec cyklu wzrostowego, możliwy zwrot' },
+      { color: '#4a9eff', text: '<b>DPO = 0</b> — cena dokładnie na swojej historycznej średniej' },
+    ],
+    tip: 'DPO jest bardziej wskaźnikiem analitycznym niż transakcyjnym. Używaj go do zrozumienia rytmu rynku a nie do wejść w pozycje.'
+  },
+  {
+    id: 'dmi',
+    name: 'Directional Movement',
+    short: 'DMI / ADX · SIŁA TRENDU',
+    icon: '🧭',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Składa się z trzech linii — <b>+DI</b> (siła ruchu wzrostowego), <b>-DI</b> (siła ruchu spadkowego) i <b>ADX</b> (siła trendu niezależnie od kierunku).',
+      'ADX powyżej <b>25</b> = mamy trend wart handlowania. Powyżej <b>40</b> = bardzo silny trend. Poniżej <b>20</b> = rynek chodzi w bok, lepiej nie wchodzić z wskaźnikami trendowymi.',
+      'Kiedy <b>+DI jest powyżej -DI</b> i ADX rośnie — silny trend wzrostowy. Kiedy <b>-DI powyżej +DI</b> i ADX rośnie — silny trend spadkowy. ADX tylko mierzy siłę — nie kierunek.'
+    ],
+    signals: [
+      { color: '#c8ff00', text: '<b>ADX powyżej 25</b> — trend istnieje, można używać wskaźników trendowych' },
+      { color: '#4aff88', text: '<b>+DI przecina -DI od dołu, ADX rośnie</b> — silny sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>-DI przecina +DI od dołu, ADX rośnie</b> — silny sygnał sprzedaży' },
+    ],
+    tip: 'ADX to jeden z najlepszych filtrów trendowych. Zanim użyjesz EMA, MACD czy SuperTrendu sprawdź czy ADX jest powyżej 25 — jeśli nie, sygnały będą fałszywe.'
+  },
+  {
+    id: 'donchian',
+    name: 'Donchian Channel',
+    short: 'KANAŁ · BREAKOUT',
+    icon: '📦',
+    iconBg: '#1a1a2a',
+    iconColor: '#4a9eff',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      '<b>Górna linia</b> to najwyższy High z ostatnich N świeczek, <b>dolna</b> to najniższy Low. Środkowa to ich średnia. Tworzy kanał w którym poruszała się cena.',
+      'Richard Donchian używał go w słynnym systemie <b>Turtle Trading</b> gdzie kupował gdy cena przebijała górną linię 20-dniowego kanału i sprzedawał gdy przebijała dolną.',
+      'Działa świetnie na rynkach z silnymi trendami, słabo na rynkach chodzących w bok. Przebicie górnej linii = <b>nowe maksimum</b> — sygnał wzrostowy. Przebicie dolnej = nowe minimum — sygnał spadkowy.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena przebija górną linię</b> — nowe maksimum, sygnał kupna (breakout)' },
+      { color: '#ff6b6b', text: '<b>Cena przebija dolną linię</b> — nowe minimum, sygnał sprzedaży' },
+      { color: '#4a9eff', text: '<b>Cena przy środkowej linii</b> — strefa neutralna, brak sygnału' },
+    ],
+    tip: 'Turtle Trading używał 20-dniowego kanału do wejść i 10-dniowego do wyjść. To jeden z najsłynniejszych systemów transakcyjnych w historii.'
+  },
+  {
+    id: 'dema',
+    name: 'Double EMA',
+    short: 'DEMA · SZYBKA ŚREDNIA',
+    icon: '⚡',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Szybsza wersja EMA. Wzór to <b>2×EMA − EMA(EMA)</b>. Przez zastosowanie EMA do samej EMA i podwojenie wyniku redukuje opóźnienie standardowej średniej kroczącej.',
+      'Efekt jest taki że DEMA podąża za ceną znacznie bliżej i szybciej niż zwykła EMA. Na szybko poruszającym się rynku to wielka zaleta.',
+      'Wadą jest że generuje więcej fałszywych sygnałów na niespokojnych, bocznych rynkach właśnie przez tę czułość. Na spokojnym rynku zwykła EMA może być lepsza.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena powyżej DEMA i DEMA rośnie</b> — trend wzrostowy potwierdzony' },
+      { color: '#ff6b6b', text: '<b>Cena poniżej DEMA i DEMA spada</b> — trend spadkowy potwierdzony' },
+      { color: '#c8ff00', text: '<b>Cena krzyżuje DEMA wielokrotnie</b> — rynek boczny, nie używaj DEMA' },
+    ],
+    tip: 'DEMA jest szczególnie przydatna na wyższych timeframe\'ach (H1, H4, D1) gdzie szybka reakcja jest cenna a fałszywych sygnałów jest mniej.'
+  },
+  {
+    id: 'eom',
+    name: 'Ease of Movement',
+    short: 'EOM · WOLUMEN + CENA',
+    icon: '🌊',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Łączy <b>cenę i wolumen</b> w jednym wskaźniku. Mierzy jak łatwo cena się porusza w relacji do wolumenu.',
+      '<b>Wysoka wartość (dodatnia)</b> = cena porusza się w górę przy małym wolumenie — rynek "z łatwością" idzie w górę, co jest bycze. <b>Niska wartość (ujemna)</b> = cena spada przy małym wolumenie.',
+      'Wartości bliskie zera mogą oznaczać albo brak ruchu albo duży ruch przy bardzo wysokim wolumenie. Przydatny jako filtr potwierdzający — jeśli EOM potwierdza ruch, sygnał jest mocniejszy.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>EOM mocno dodatni</b> — cena rośnie łatwo, mały opór sprzedających' },
+      { color: '#ff6b6b', text: '<b>EOM mocno ujemny</b> — cena spada łatwo, mały opór kupujących' },
+      { color: '#c8ff00', text: '<b>EOM blisko zera mimo ruchu ceny</b> — ruch wymaga dużego wolumenu, słaby sygnał' },
+    ],
+    tip: 'EOM jest mniej popularny ale ciekawy jako dodatkowe potwierdzenie. Szczególnie wartościowy gdy wolumen jest dostępny na Twoim instrumencie.'
+  },
+  {
+    id: 'ema',
+    name: 'Exponential Moving Average',
+    short: 'EMA · ŚREDNIA KROCZĄCA',
+    icon: '📉',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Daje <b>wykładniczo większą wagę ostatnim świeczkom</b>. Dzięki temu reaguje szybciej na zmiany ceny niż zwykła MA. Najpopularniejsze ustawienia to EMA 9, 20, 50, 100 i 200.',
+      '<b>EMA 200</b> na wykresie dziennym to jeden z najważniejszych poziomów dla instytucji — cena powyżej EMA 200 = rynek w trybie wzrostowym, poniżej = spadkowym.',
+      'Przecięcia dwóch EMA to klasyczne sygnały. <b>Golden Cross</b> = EMA 50 przecina EMA 200 od dołu (silny sygnał kupna). <b>Death Cross</b> = EMA 50 przecina EMA 200 od góry (silny sygnał sprzedaży).'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena powyżej EMA 200</b> — długoterminowy trend wzrostowy' },
+      { color: '#ff6b6b', text: '<b>Cena poniżej EMA 200</b> — długoterminowy trend spadkowy' },
+      { color: '#c8ff00', text: '<b>Golden Cross (EMA 50 > EMA 200)</b> — silny długoterminowy sygnał kupna' },
+    ],
+    tip: 'EMA 20 na wykresie 5M działa jak dynamiczny support/resistance intraday. Wielu traderów wchodzi w pozycje przy powrocie ceny do EMA 20.'
+  },
+  {
+    id: 'ichimoku',
+    name: 'Ichimoku',
+    short: 'ICHIMOKU · KOMPLETNY SYSTEM',
+    icon: '☁️',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Japoński wskaźnik który w jednym narzędziu pokazuje trend, support, resistance i momentum. Składa się z pięciu elementów.',
+      '<b>Tenkan-sen</b> (9 okresów) — krótkoterminowy trend. <b>Kijun-sen</b> (26 okresów) — średnioterminowy trend. <b>Chmura Kumo</b> (Senkou Span A i B) — strefa support/resistance przesunięta w przyszłość. <b>Chikou Span</b> — cena zamknięcia przesunięta 26 okresów wstecz do potwierdzenia.',
+      'Cena <b>powyżej chmury</b> = trend wzrostowy. <b>Poniżej chmury</b> = trend spadkowy. <b>W chmurze</b> = brak trendu. Najsilniejszy sygnał gdy wszystkie elementy są wyrównane.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena powyżej chmury + Tenkan powyżej Kijun</b> — silny sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>Cena poniżej chmury + Tenkan poniżej Kijun</b> — silny sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Cienka chmura</b> — słabe wsparcie, łatwe do przebicia' },
+    ],
+    tip: 'Ichimoku wymaga nauki ale jest jednym z najbardziej kompletnych wskaźników. Daje jednocześnie trend, support/resistance i momentum bez potrzeby innych wskaźników.'
+  },
+  {
+    id: 'kdj',
+    name: 'KDJ',
+    short: 'KDJ · STOCHASTIC+',
+    icon: '🎲',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Rozbudowana wersja Stochastic z dodatkową linią <b>J</b>. K i D działają jak w Stochastic — K to szybka linia, D to wolna (wygładzona K).',
+      'Linia <b>J = 3×K − 2×D</b> jest ekstremalnie czuła i może wychodzić poza zakres 0–100 co jest sygnałem bardzo silnego wykupienia lub wyprzedania.',
+      'Kiedy J wychodzi <b>powyżej 100</b> — silny sygnał wykupienia. <b>Poniżej 0</b> — silny sygnał wyprzedania. Bardzo popularny w Azji szczególnie na rynkach chińskich.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>J powyżej 100</b> — ekstremalnie wykupiony, możliwe odwrócenie' },
+      { color: '#4aff88', text: '<b>J poniżej 0</b> — ekstremalnie wyprzedany, możliwe odwrócenie' },
+      { color: '#c8ff00', text: '<b>K przecina D od dołu w strefie wyprzedania</b> — sygnał kupna' },
+    ],
+    tip: 'KDJ jest czulszy niż zwykły Stochastic przez linię J. Na krótkich timeframe\'ach (5M, 15M) może być bardzo użyteczny do znajdowania punktów zwrotnych.'
+  },
+  {
+    id: 'keltner',
+    name: 'Keltner Channel',
+    short: 'KC · KANAŁ ATR',
+    icon: '🏔️',
+    iconBg: '#1a1a2a',
+    iconColor: '#4a9eff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Trzy linie — środkowa <b>EMA 20</b> oraz górna i dolna oparta na <b>ATR (zazwyczaj 2×ATR)</b>. W przeciwieństwie do Bollingera który używa odchylenia standardowego, Keltner jest bardziej stabilny.',
+      'Keltner mniej reaguje na pojedyncze duże świeczki bo ATR jest wygładzony. Dzięki temu kanał jest bardziej regularny i łatwiej widać przebicia.',
+      'Klasyczna strategia <b>"Bollinger Squeeze"</b> polega na tym że gdy Wstęgi Bollingera wchodzą wewnątrz Kanału Keltnera — mamy squeeze. Kierunek wybicia determinuje stronę transakcji.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena wychodzi powyżej górnej linii Keltnera</b> — silny ruch wzrostowy' },
+      { color: '#ff6b6b', text: '<b>Cena wychodzi poniżej dolnej linii Keltnera</b> — silny ruch spadkowy' },
+      { color: '#c8ff00', text: '<b>Bollinger wchodzi w Keltner</b> — squeeze, czekaj na wybicie' },
+    ],
+    tip: 'Keltner + Bollinger to jedno z najbardziej popularnych połączeń wśród profesjonalnych traderów. Squeeze między nimi często poprzedza bardzo silne ruchy.'
+  },
+  {
+    id: 'macd',
+    name: 'MACD',
+    short: 'MACD · TREND + MOMENTUM',
+    icon: '📊',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Obliczany jako różnica między <b>EMA 12</b> a <b>EMA 26</b> — to linia MACD. <b>Linia Signal</b> to EMA 9 z samego MACD. <b>Histogram</b> pokazuje różnicę między MACD a Signal.',
+      'Cztery główne sygnały: przecięcie linii MACD przez Signal, przecięcie zera przez MACD (potwierdzenie zmiany trendu), <b>dywergencja</b> między MACD a ceną (jeden z najsilniejszych sygnałów) i kształt histogramu.',
+      'MACD jest wskaźnikiem opóźniającym więc najlepiej używać go do <b>potwierdzenia</b> a nie do wejść. Gdy histogram zaczyna maleć mimo że cena nadal rośnie — ostrzeżenie.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Linia MACD przecina Signal od dołu</b> — sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>Linia MACD przecina Signal od góry</b> — sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Dywergencja: cena nowy szczyt, MACD niższy szczyt</b> — ostrzeżenie przed odwróceniem' },
+    ],
+    tip: 'Dywergencja MACD to jeden z najsilniejszych sygnałów w analizie technicznej. Gdy cena robi nowe szczyty ale MACD już nie — bardzo poważne ostrzeżenie.'
+  },
+  {
+    id: 'momentum',
+    name: 'Momentum',
+    short: 'MOM · SZYBKOŚĆ RUCHU',
+    icon: '🚀',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Najprostszy wskaźnik momentum — po prostu <b>cena teraz minus cena sprzed N świeczek</b>. Jeśli wynik jest dodatni cena jest wyżej niż była, ujemny — niżej.',
+      'Przejście przez <b>zero</b> to sygnał zmiany trendu — cena zaczyna być wyżej lub niżej niż N świeczek temu. Prosty ale skuteczny filtr kierunku.',
+      '<b>Dywergencja</b> między Momentum a ceną (cena robi nowy szczyt ale Momentum już nie) to klasyczny sygnał ostrzegawczy. Przydatny jako szybki filtr — czy rynek w ogóle się porusza.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Momentum przechodzi przez zero od dołu</b> — zmiana trendu na wzrostowy' },
+      { color: '#ff6b6b', text: '<b>Momentum przechodzi przez zero od góry</b> — zmiana trendu na spadkowy' },
+      { color: '#c8ff00', text: '<b>Momentum silnie dodatni i rośnie</b> — silne momentum wzrostowe, trend zdrowy' },
+    ],
+    tip: 'Momentum jest bazą dla wielu innych wskaźników. Używaj go jako szybkiego potwierdzenia — jeśli Momentum spada gdy cena rośnie, trend może być słabnący.'
+  },
+  {
+    id: 'mfi',
+    name: 'Money Flow Index',
+    short: 'MFI · RSI + WOLUMEN',
+    icon: '💰',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Wersja RSI która <b>uwzględnia wolumen</b>. Oblicza "typical price" (High + Low + Close / 3) a potem mnoży przez wolumen żeby dostać "money flow".',
+      'Porównuje pozytywny i negatywny przepływ pieniędzy. Powyżej <b>80</b> = wykupiony, poniżej <b>20</b> = wyprzedany. Na trendującym rynku lepiej używać 90/10.',
+      '<b>Dywergencja MFI versus cena</b> jest szczególnie wartościowa bo łączy cenę i wolumen jednocześnie — jeśli cena rośnie ale MFI spada, duże pieniądze nie potwierdzają ruchu.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>MFI powyżej 80</b> — wykupiony, możliwy szczyt' },
+      { color: '#4aff88', text: '<b>MFI poniżej 20</b> — wyprzedany, możliwy dołek' },
+      { color: '#c8ff00', text: '<b>Dywergencja: cena rośnie, MFI spada</b> — duże pieniądze sprzedają mimo wzrostów' },
+    ],
+    tip: 'MFI jest mocniejszy niż RSI gdy wolumen jest wiarygodny. Na Indeksach (FTSE, DAX) gdzie wolumen jest dostępny, MFI daje bardziej wiarygodne sygnały niż sam RSI.'
+  },
+  {
+    id: 'ma',
+    name: 'Moving Average',
+    short: 'MA · ŚREDNIA KROCZĄCA',
+    icon: '〰️',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Prosta średnia krocząca — sumuje ceny zamknięcia i dzieli przez liczbę okresów. <b>Każda świeczka ma równą wagę</b> w przeciwieństwie do EMA.',
+      'Przez to jest wolniejsza i bardziej "leniwa" niż EMA ale też mniej podatna na fałszywe sygnały. <b>MA 200</b> na wykresie dziennym to jeden z najważniejszych poziomów technicznych.',
+      'Przecięcie ceny przez MA 200 to bardzo ważny sygnał dla długoterminowych traderów i instytucji. Poziom obserwowany przez cały rynek finansowy.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena powyżej MA 200</b> — długoterminowy trend wzrostowy, rynek byczych nastawień' },
+      { color: '#ff6b6b', text: '<b>Cena poniżej MA 200</b> — długoterminowy trend spadkowy' },
+      { color: '#c8ff00', text: '<b>MA 50 przecina MA 200 (Golden/Death Cross)</b> — silny długoterminowy sygnał' },
+    ],
+    tip: 'MA 200 na wykresie dziennym to poziom który obserwują instytucje na całym świecie. Jeśli FTSE 100 spada do MA 200 możesz oczekiwać reakcji kupujących.'
+  },
+  {
+    id: 'obv',
+    name: 'On Balance Volume',
+    short: 'OBV · KUMULACJA',
+    icon: '📦',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Kumuluje wolumen — <b>dodaje wolumen gdy cena rośnie</b>, <b>odejmuje gdy spada</b>. Pokazuje ogólny przepływ pieniędzy do i z instrumentu.',
+      'Teoria mówi że <b>wolumen wyprzedza cenę</b> — "smart money" kupuje zanim cena ruszy w górę więc OBV zacznie rosnąć przed ceną. To jeden z kluczowych założeń analizy wolumenu.',
+      'Jeśli cena robi nowe szczyty ale OBV nie — słaby sygnał, instytucje nie potwierdzają ruchu. Jeśli OBV rośnie szybciej niż cena — duże pieniądze wchodzą na rynek.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>OBV rośnie szybciej niż cena</b> — akumulacja, duże pieniądze kupują' },
+      { color: '#ff6b6b', text: '<b>OBV spada gdy cena rośnie (dywergencja)</b> — dystrybucja, instytucje sprzedają' },
+      { color: '#c8ff00', text: '<b>OBV i cena rosną razem</b> — ruch potwierdzony wolumenem, wiarygodny' },
+    ],
+    tip: 'OBV jest szczególnie przydatny na akcjach gdzie wolumen jest bardzo wiarygodny. Na CFD wolumen może być mniej dokładny — traktuj jako wskazówkę, nie pewnik.'
+  },
+  {
+    id: 'psar',
+    name: 'Parabolic SAR',
+    short: 'PSAR · TRAILING STOP',
+    icon: '🔵',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'SAR znaczy <b>"Stop and Reverse"</b>. Rysuje kropki nad lub pod świeczkami. Gdy cena przebija kropki wskaźnik "odwraca się" na drugą stronę.',
+      '<b>Kropki pod ceną</b> = trend wzrostowy, trzymasz long. <b>Kropki nad ceną</b> = trend spadkowy, trzymasz short. Bardzo prosty i czytelny — dwa kolory, jedna decyzja.',
+      'Świetny do <b>trailing stop</b> — możesz używać go jako dynamiczny poziom stop-loss który przesuwa się razem z trendem. Słabość to że na rynku bocznym generuje bardzo dużo fałszywych sygnałów.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Kropki przeskakują pod cenę</b> — sygnał kupna, nowy trend wzrostowy' },
+      { color: '#ff6b6b', text: '<b>Kropki przeskakują nad cenę</b> — sygnał sprzedaży, nowy trend spadkowy' },
+      { color: '#c8ff00', text: '<b>Częste przeskakiwanie kropek</b> — rynek boczny, nie używaj PSAR' },
+    ],
+    tip: 'Parabolic SAR jest idealny do zarządzania otwartą pozycją. Ustaw trailing stop na poziomie kropek i pozwól trendowi pracować bez ręcznego przesuwania stop-lossa.'
+  },
+  {
+    id: 'pivot',
+    name: 'Pivot Point',
+    short: 'PP · SUPPORT / RESISTANCE',
+    icon: '⚖️',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Obliczany ze wzoru <b>P = (High + Low + Close) / 3</b> z poprzedniej sesji. Na podstawie tego punktu obliczane są poziomy R1, R2, R3 (resistance) i S1, S2, S3 (support).',
+      'Te poziomy są <b>szeroko obserwowane przez instytucje i market makerów</b> przez co często stają się samospełniającą przepownią — cena reaguje na tych poziomach właśnie dlatego że wszyscy na nie patrzą.',
+      'Resetuje się każdego dnia (lub tygodnia/miesiąca w zależności od ustawień). Bardzo popularny wśród day traderów na Forex i Indices.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena odbija od S1/S2 w górę</b> — support działa, sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>Cena odbija od R1/R2 w dół</b> — resistance działa, sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Cena przebija R1 z wolumenem</b> — silny breakout, cel to R2' },
+    ],
+    tip: 'Pivot Points są szczególnie skuteczne na początku sesji europejskiej (8:00–10:00) i amerykańskiej (14:30–16:00). Rynek "testuje" te poziomy przy otwarciu.'
+  },
+  {
+    id: 'roc',
+    name: 'Rate of Change',
+    short: 'ROC · ZMIANA %',
+    icon: '📐',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Podobny do Momentum ale wyrażony <b>procentowo</b>. Oblicza (cena teraz − cena N świeczek temu) / cena N świeczek temu × 100.',
+      'Dzięki procentowemu wyrażeniu możesz <b>porównywać ROC różnych instrumentów</b> — np. czy FTSE rośnie szybciej niż DAX, lub która akcja ma silniejsze momentum.',
+      'Przejście przez zero to sygnał zmiany trendu. Dywergencja z ceną jest ważnym sygnałem ostrzegawczym. Używany też do budowania systemów rotacji między instrumentami.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>ROC przechodzi przez zero od dołu</b> — cena wyżej niż N świeczek temu, trend wzrostowy' },
+      { color: '#ff6b6b', text: '<b>ROC przechodzi przez zero od góry</b> — cena niżej niż N świeczek temu, trend spadkowy' },
+      { color: '#c8ff00', text: '<b>ROC ekstremalnie wysoki</b> — ruch być może przedwcześnie wykupiony' },
+    ],
+    tip: 'ROC jest szczególnie przydatny do porównywania siły różnych instrumentów. Jeśli handlujesz kilkoma indeksami możesz wybrać ten z najwyższym ROC jako najsilniejszy.'
+  },
+  {
+    id: 'rci',
+    name: 'RCI',
+    short: 'RCI · KORELACJA RANG',
+    icon: '🔗',
+    iconBg: '#1a1520',
+    iconColor: '#aa88ff',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Mierzy <b>korelację między kolejnością czasową świeczek a kolejnością ich cen</b>. Jeśli ceny rosną równomiernie i regularnie RCI jest blisko +100.',
+      'Wartość <b>+100</b> = doskonała korelacja wzrostowa. <b>-100</b> = doskonała korelacja spadkowa. <b>Blisko 0</b> = brak korelacji, rynek chaotyczny.',
+      'Traders często używają <b>dwóch RCI</b> — krótkoterminowego i długoterminowego — i szukają ich przecięć jako sygnałów wejścia. Popularny głównie w Japonii.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>RCI odbija od -80 w górę</b> — sygnał kupna, koniec korelacji spadkowej' },
+      { color: '#ff6b6b', text: '<b>RCI odbija od +80 w dół</b> — sygnał sprzedaży, koniec korelacji wzrostowej' },
+      { color: '#c8ff00', text: '<b>Krótki RCI przecina długi RCI</b> — sygnał zmiany trendu' },
+    ],
+    tip: 'RCI jest mało znany na Zachodzie ale popularny wśród japońskich traderów. Warto go poznać jako alternatywę dla RSI — daje inne spojrzenie na momentum.'
+  },
+  {
+    id: 'rsi',
+    name: 'RSI',
+    short: 'RSI · SIŁA WZGLĘDNA',
+    icon: '⚡',
+    iconBg: '#2a1000',
+    iconColor: '#ff6b6b',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Jeden z najpopularniejszych wskaźników na świecie. Mierzy <b>siłę ostatnich wzrostów vs spadków</b> w skali 0–100. Ustawienie 14 jest standardowe.',
+      'Klasyczne poziomy to <b>70</b> (wykupiony) i <b>30</b> (wyprzedany) ale na mocno trendującym rynku RSI może pozostawać powyżej 70 przez długi czas — to nie jest sygnał sprzedaży, tylko potwierdzenie silnego trendu.',
+      '<b>Dywergencja</b> jest najsilniejszym sygnałem RSI — gdy cena robi wyższy szczyt ale RSI robi niższy szczyt, oznacza to słabnące momentum i możliwe odwrócenie.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>RSI powyżej 70</b> — wykupiony (w trendzie = potwierdzenie siły)' },
+      { color: '#4aff88', text: '<b>RSI poniżej 30</b> — wyprzedany (w trendzie = potwierdzenie słabości)' },
+      { color: '#c8ff00', text: '<b>Dywergencja: cena nowy szczyt, RSI niższy szczyt</b> — ostrzeżenie przed odwróceniem' },
+    ],
+    tip: 'RSI 50 to często pomijany poziom — gdy RSI wraca do 50 i odbija w górę podczas trendu wzrostowego, to świetny punkt wejścia z małym ryzykiem.'
+  },
+  {
+    id: 'stddev',
+    name: 'Standard Deviation',
+    short: 'STD · ODCHYLENIE',
+    icon: '📏',
+    iconBg: '#1a1a2a',
+    iconColor: '#4a9eff',
+    category: 'volatility',
+    tag: 'ZMIENNOŚĆ',
+    tagColor: '#c8ff00',
+    tagBg: '#1a1a00',
+    desc: [
+      'Mierzy jak bardzo <b>ceny rozpraszają się wokół swojej średniej</b>. Jest matematyczną podstawą Wstęg Bollingera.',
+      '<b>Niska wartość</b> = ceny blisko średniej, rynek spokojny i przewidywalny. <b>Wysoka wartość</b> = ceny bardzo oddalone od średniej, rynek zmienny i trudny do przewidzenia.',
+      'Sam w sobie używany rzadko jako osobny wskaźnik — bardziej jako składnik innych wskaźników lub do oceny zmienności instrumentu przed wejściem w pozycję. Pomaga dobrać właściwy rozmiar stop-lossa.'
+    ],
+    signals: [
+      { color: '#4a9eff', text: '<b>STD spada do minimum</b> — rynek spokojny, zmienność historycznie niska' },
+      { color: '#c8ff00', text: '<b>STD gwałtownie rośnie</b> — wzrost zmienności, czas na szersze stop-lossy' },
+      { color: '#ff6b6b', text: '<b>STD ekstremalnie wysoki</b> — rynek panikuje, zmniejsz pozycję' },
+    ],
+    tip: 'Standard Deviation pomaga dobrać właściwy mnożnik ATR. Gdy STD jest niskie możesz użyć 1.5×ATR jako stop-loss, gdy wysokie lepiej użyć 2.5×ATR lub 3×ATR.'
+  },
+  {
+    id: 'stoch',
+    name: 'Stochastic',
+    short: 'STOCH · WYKUPIENIE',
+    icon: '🎯',
+    iconBg: '#2a1a00',
+    iconColor: '#ff9900',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Porównuje cenę zamknięcia z zakresem High-Low z ostatnich N świeczek. Logika jest taka że <b>podczas trendu wzrostowego ceny zamknięcia są blisko szczytu zakresu</b>.',
+      'Linia <b>%K</b> to szybka linia (surowy wynik), <b>%D</b> to wygładzona wersja %K. Sygnał kupna gdy obie linie są poniżej 20 i %K przecina %D od dołu.',
+      'Bardzo skuteczny na <b>rynkach bez silnego trendu</b> (bocznych), mniej skuteczny gdy rynek mocno trenduje bo może być wyprzedany/wykupiony przez długi czas.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>%K przecina %D od dołu poniżej 20</b> — silny sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>%K przecina %D od góry powyżej 80</b> — silny sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Dywergencja Stochastic vs cena</b> — możliwe odwrócenie trendu' },
+    ],
+    tip: 'Stochastic jest najskuteczniejszy gdy ADX jest poniżej 25 (brak trendu). Na trendującym rynku może dawać przedwczesne sygnały odwrócenia.'
+  },
+  {
+    id: 'supertrend',
+    name: 'SuperTrend',
+    short: 'ST · TREND JASNO',
+    icon: '🟢',
+    iconBg: '#0a1a0a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Oparty na ATR — oblicza górną i dolną granicę na podstawie ATR pomnożonego przez współczynnik (domyślnie 3). Rysuje <b>jedną linię</b> która zmienia kolor.',
+      '<b>Zielona linia</b> = trend wzrostowy, trzymaj long. <b>Czerwona linia</b> = trend spadkowy, trzymaj short. Kiedy cena przebija linię wskaźnik zmienia stronę i kolor.',
+      'Popularne ustawienia to ATR 10 z mnożnikiem 3 lub ATR 7 z mnożnikiem 3. <b>Świetny dla początkujących</b> bo jest jednoznaczny — zero interpretacji, albo zielony albo czerwony.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Linia zmienia kolor na zielony</b> — nowy trend wzrostowy, sygnał kupna' },
+      { color: '#ff6b6b', text: '<b>Linia zmienia kolor na czerwony</b> — nowy trend spadkowy, sygnał sprzedaży' },
+      { color: '#c8ff00', text: '<b>Cena daleko od linii SuperTrend</b> — trend silny, możliwy powrót do linii' },
+    ],
+    tip: 'SuperTrend z ustawieniami ATR(7, 3) na wykresie 5M to popularna kombinacja dla day traderów na Indeksach. Możesz używać linii jako trailing stop-loss.'
+  },
+  {
+    id: 'volume',
+    name: 'Volume',
+    short: 'VOL · WOLUMEN',
+    icon: '📊',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Sam wolumen nie jest technicznie wskaźnikiem ale <b>kontekstem dla wszystkich innych</b>. Ruch ceny przy wysokim wolumenie jest wiarygodny, przy niskim podejrzany.',
+      'Duże wzrosty wolumenu często sygnalizują <b>punkty zwrotne</b> — "climax volume" gdy wszyscy kupują lub sprzedają jednocześnie często kończy trend. To ważny sygnał wyczerpania.',
+      'Na IG dla CFD na Indices wolumen może być <b>mniej wiarygodny</b> niż na prawdziwych giełdach — lepiej patrzeć na wolumen z CME lub rzeczywistych giełd jeśli możliwe.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Wzrost ceny + wysoki wolumen</b> — wiarygodny ruch, instytucje uczestniczą' },
+      { color: '#ff6b6b', text: '<b>Wzrost ceny + niski wolumen</b> — podejrzany ruch, może nie być trwały' },
+      { color: '#c8ff00', text: '<b>Ekstremalnie wysoki wolumen przy odwróceniu</b> — climax, możliwy koniec trendu' },
+    ],
+    tip: 'Zawsze sprawdzaj wolumen przy przebiciach ważnych poziomów. Przebicie oporu bez wolumenu to często fałszywy breakout — czekaj na potwierdzenie.'
+  },
+  {
+    id: 'vwap',
+    name: 'VWAP',
+    short: 'VWAP · FAIR VALUE',
+    icon: '⚖️',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Oblicza <b>średnią cenę ważoną wolumenem</b> od początku sesji. Instytucje i fundusze używają VWAP jako benchmarku — starają się kupować poniżej VWAP i sprzedawać powyżej.',
+      'Dlatego VWAP często działa jak <b>magnes dla ceny</b> w ciągu dnia. Cena wraca do VWAP wielokrotnie w ciągu sesji. To jeden z najczęściej obserwowanych poziomów przez profesjonalistów.',
+      '<b>Resetuje się każdego dnia</b> o północy więc używany głównie przez day traderów. Cena powyżej VWAP = bycze nastawienie sesji, poniżej = niedźwiedzie.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena wraca do VWAP od góry i odbija</b> — sygnał kupna w trendzie wzrostowym' },
+      { color: '#ff6b6b', text: '<b>Cena wraca do VWAP od dołu i odbija</b> — sygnał sprzedaży w trendzie spadkowym' },
+      { color: '#c8ff00', text: '<b>Cena przez długi czas powyżej VWAP</b> — sesja w trybie wzrostowym' },
+    ],
+    tip: 'VWAP jest jednym z najważniejszych poziomów dla day tradingu na Indeksach. Wejście przy powrocie ceny do VWAP to klasyczna strategia z dobrym R:R.'
+  },
+  {
+    id: 'vwma',
+    name: 'VWMA',
+    short: 'VWMA · ŚREDNIA + WOLUMEN',
+    icon: '📈',
+    iconBg: '#001a2a',
+    iconColor: '#4a9eff',
+    category: 'volume',
+    tag: 'WOLUMEN',
+    tagColor: '#4a9eff',
+    tagBg: '#001020',
+    desc: [
+      'Średnia krocząca gdzie <b>okresy z wysokim wolumenem mają większy wpływ</b> na wynik. Jeśli był duży wolumen przy cenie 100 ta cena "waży więcej" w średniej.',
+      'Wynik jest dokładniejszy obraz <b>"fair value"</b> niż zwykła MA bo uwzględnia gdzie naprawdę były pieniądze. Gdy VWMA jest powyżej MA oznacza że wysoki wolumen był przy wyższych cenach — bycze.',
+      'Gdy VWMA jest poniżej MA — wysoki wolumen był przy niższych cenach — niedźwiedzie. Różnica między VWMA a MA pokazuje "sentyment wolumenowy".'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>VWMA powyżej MA</b> — wysoki wolumen był przy wzrostach, bycze' },
+      { color: '#ff6b6b', text: '<b>VWMA poniżej MA</b> — wysoki wolumen był przy spadkach, niedźwiedzie' },
+      { color: '#c8ff00', text: '<b>VWMA i MA zbliżają się do siebie</b> — wolumen rozkłada się równomiernie, brak kierunku' },
+    ],
+    tip: 'VWMA jest dobrą alternatywą dla EMA gdy chcesz żeby średnia odzwierciedlała aktywność wolumenową a nie tylko cenę. Szczególnie wartościowa na akcjach.'
+  },
+  {
+    id: 'wma',
+    name: 'Weighted Moving Average',
+    short: 'WMA · WAŻONA ŚREDNIA',
+    icon: '📉',
+    iconBg: '#1a2a1a',
+    iconColor: '#4aff88',
+    category: 'trend',
+    tag: 'TREND',
+    tagColor: '#4aff88',
+    tagBg: '#0a1a0a',
+    desc: [
+      'Podobna idea do EMA ale wagi rosną <b>liniowo a nie wykładniczo</b>. Dla 5-okresowej WMA ostatnia świeczka ma wagę 5, przedostatnia 4, itd.',
+      'Szybsza od MA, trochę wolniejsza od EMA. W praktyce <b>różnica między WMA a EMA jest niewielka</b> i większość traderów wybiera EMA bo jest bardziej powszechna.',
+      'WMA może być przydatna gdy chcesz czegoś między powolną MA a szybką EMA — kompromis który daje wyważone sygnały bez ekstremalnej czułości EMA.'
+    ],
+    signals: [
+      { color: '#4aff88', text: '<b>Cena powyżej WMA i WMA rośnie</b> — trend wzrostowy potwierdzony' },
+      { color: '#ff6b6b', text: '<b>Cena poniżej WMA i WMA spada</b> — trend spadkowy potwierdzony' },
+      { color: '#c8ff00', text: '<b>Przecięcie WMA przez cenę</b> — potencjalna zmiana trendu' },
+    ],
+    tip: 'WMA jest rzadko używana samodzielnie. Jej największa wartość to porównanie z EMA i MA — gdy wszystkie trzy pokazują ten sam kierunek, sygnał jest bardzo mocny.'
+  },
+  {
+    id: 'williamsr',
+    name: 'Williams %R',
+    short: 'W%R · WYKUPIENIE',
+    icon: '🎯',
+    iconBg: '#2a0a0a',
+    iconColor: '#ff6b6b',
+    category: 'momentum',
+    tag: 'MOMENTUM',
+    tagColor: '#ff9900',
+    tagBg: '#1a0f00',
+    desc: [
+      'Stworzony przez Larry\'ego Williamsa który wygrał mistrzostwa świata w tradingu zamieniając <b>$10,000 w ponad $1,000,000</b> w ciągu roku.',
+      'Mierzy gdzie cena zamknięcia jest względem najwyższego High z ostatnich N świeczek. Skala od <b>0 do -100</b> — blisko 0 = cena blisko szczytu (wykupiona), blisko -100 = cena blisko dołka (wyprzedana).',
+      'Bardzo podobny do Stochastic %K ale odwrócony. Williams używał go głównie do znajdowania <b>krótkoterminowych odwróceń w kierunku głównego trendu</b> — kupował wyprzedania w trendzie wzrostowym.'
+    ],
+    signals: [
+      { color: '#ff6b6b', text: '<b>W%R powyżej -20</b> — wykupiony, możliwy sygnał sprzedaży' },
+      { color: '#4aff88', text: '<b>W%R poniżej -80</b> — wyprzedany, możliwy sygnał kupna' },
+      { color: '#c8ff00', text: '<b>W%R wychodzi z strefy wyprzedania w trendzie wzrostowym</b> — sygnał kupna' },
+    ],
+    tip: 'Williams %R działa najlepiej gdy handlujesz w kierunku głównego trendu. Na trendzie wzrostowym szukaj wejść gdy W%R spada do -80 i zaczyna rosnąć — to klasyczna strategia Williamsa.'
+  }
+];
+
+let currentCategory = 'all';
+let currentSearch = '';
+
+function renderList() {
+  const wrap = document.getElementById('listWrap');
+  const search = currentSearch.toLowerCase();
+
+  let filtered = indicators.filter(ind => {
+    const matchCat = currentCategory === 'all' || ind.category === currentCategory;
+    const matchSearch = !search ||
+      ind.name.toLowerCase().includes(search) ||
+      ind.short.toLowerCase().includes(search);
+    return matchCat && matchSearch;
+  });
+
+  document.getElementById('countLabel').textContent = filtered.length + ' WSKAŹNIKÓW';
+
+  if (filtered.length === 0) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>Nie znaleziono wskaźnika<br><span style="font-size:11px;color:#333">${currentSearch}</span></div>`;
+    return;
+  }
+
+  // Group by category when showing all
+  let html = '';
+  if (currentCategory === 'all' && !search) {
+    const groups = {
+      trend: { label: 'TREND', items: [] },
+      momentum: { label: 'MOMENTUM', items: [] },
+      volatility: { label: 'ZMIENNOŚĆ', items: [] },
+      volume: { label: 'WOLUMEN', items: [] }
+    };
+    filtered.forEach(ind => groups[ind.category].items.push(ind));
+    Object.values(groups).forEach(g => {
+      if (g.items.length) {
+        html += `<div class="section-title">${g.label}</div>`;
+        g.items.forEach(ind => html += renderCard(ind));
+      }
+    });
+  } else {
+    filtered.forEach(ind => html += renderCard(ind));
+  }
+
+  wrap.innerHTML = html;
+}
+
+function renderCard(ind) {
+  return `
+    <button class="indicator-btn" onclick="openModal('${ind.id}')">
+      <div class="ind-left">
+        <div class="ind-icon" style="background:${ind.iconBg}">${ind.icon}</div>
+        <div class="ind-info">
+          <div class="ind-name">${ind.name}</div>
+          <div class="ind-short">${ind.short}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="ind-tag" style="color:${ind.tagColor};background:${ind.tagBg};border-color:${ind.tagColor}33">${ind.tag}</div>
+        <div class="arrow">›</div>
+      </div>
+    </button>`;
+}
+
+function filterCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function filterIndicators() {
+  currentSearch = document.getElementById('searchInput').value;
+  renderList();
+}
+
+function openModal(id) {
+  const ind = indicators.find(i => i.id === id);
+  if (!ind) return;
+
+  document.getElementById('mIcon').style.background = ind.iconBg;
+  document.getElementById('mIcon').textContent = ind.icon;
+  document.getElementById('mName').textContent = ind.name;
+  document.getElementById('mShort').textContent = ind.short;
+
+  let body = '<div class="modal-desc">';
+  ind.desc.forEach(p => body += `<p>${p}</p>`);
+  body += '</div>';
+
+  if (ind.signals) {
+    body += `<div class="modal-section">
+      <div class="modal-section-title">SYGNAŁY</div>`;
+    ind.signals.forEach(s => {
+      body += `<div class="signal-row">
+        <div class="signal-dot" style="background:${s.color}"></div>
+        <div class="signal-text">${s.text}</div>
+      </div>`;
+    });
+    body += '</div>';
+  }
+
+  if (ind.tip) {
+    body += `<div class="tip-box">
+      <div class="tip-label">💡 WSKAZÓWKA</div>
+      <div class="tip-text">${ind.tip}</div>
+    </div>`;
+  }
+
+  document.getElementById('mBody').innerHTML = body;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Swipe down to close modal
+let startY = 0;
+document.getElementById('modal').addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+document.getElementById('modal').addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientY - startY > 80) closeModalBtn();
+});
+
+renderList();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
